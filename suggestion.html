@@ -1,567 +1,377 @@
 <!DOCTYPE html>
-<html lang="en" class="scroll-smooth">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Math 2 Mastery Dashboard | Southern University Bangladesh</title>
+    <title>Math 2 Prep Interactive Dashboard</title>
     
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body);"></script>
 
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-
-    <!-- Tailwind Config for Custom Colors -->
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                        mono: ['JetBrains Mono', 'monospace'],
-                    },
-                    colors: {
-                        stone: {
-                            50: '#fafaf9',
-                            100: '#f5f5f4',
-                            200: '#e7e5e4',
-                            300: '#d6d3d1',
-                            700: '#44403c',
-                            800: '#292524',
-                            900: '#1c1917',
-                        },
-                        academic: {
-                            light: '#e0f2fe',
-                            DEFAULT: '#0284c7',
-                            dark: '#0369a1',
-                        },
-                        alert: {
-                            light: '#fef3c7',
-                            DEFAULT: '#d97706',
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-
-    <style>
-        /* Custom Styles & Chart Container Enforcement */
-        body {
-            background-color: #fafaf9; /* stone-50 */
-            color: #292524; /* stone-800 */
-        }
-        
-        .math-text {
-            font-family: 'JetBrains Mono', monospace;
-            background-color: #f5f5f4;
-            padding: 0.125rem 0.375rem;
-            border-radius: 0.25rem;
-            font-size: 0.9em;
-            color: #0369a1;
-        }
-
-        /* REQUIRED CHART CONTAINER STYLING */
-        .chart-container {
-            position: relative;
-            width: 100%;
-            max-width: 800px;
-            margin-left: auto;
-            margin-right: auto;
-            height: 40vh;
-            max-height: 450px;
-            min-height: 300px;
-        }
-
-        /* Interactive Card Hover Effects */
-        .interactive-card {
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-        .interactive-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-        }
-
-        /* Accordion Transitions */
-        .accordion-content {
-            transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out;
-            max-height: 0;
-            opacity: 0;
-            overflow: hidden;
-        }
-        .accordion-content.open {
-            max-height: 500px; /* arbitrary large height to allow content to flow */
-            opacity: 1;
-        }
-        
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #f5f5f4; }
-        ::-webkit-scrollbar-thumb { background: #d6d3d1; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #a8a29e; }
-    </style>
-</head>
-<body class="antialiased selection:bg-academic-light selection:text-academic-dark flex flex-col min-h-screen">
-
-    <!-- Chosen Palette: Warm Neutrals (Stone) with Academic Blue and Alert Amber accents -->
-    <!-- Application Structure Plan: The SPA uses a dashboard structure. It starts with a Hero header establishing context. Section 1 is an Interactive Overview featuring a Chart.js visualization to give users a quantitative sense of the study material volume. Section 2 uses an interactive Grid/Card layout to break down the Syllabus logically. Section 3 presents the Textbook mapping as a filterable data table for quick reference. Section 4 combines the Question Bank and Strategies into an interactive accordion/flashcard format, prioritizing active recall and strategic focus. This structure transforms a static list into an exploratory study tool. -->
-    <!-- Visualization & Content Choices: 
-         - Textbook Pages Mapping -> Goal: Compare/Inform -> Viz: Horizontal Bar Chart (Chart.js Canvas) -> Interaction: Hover tooltips -> Justification: Visually demonstrates which topics require the most reading/effort based on page counts. NO SVG used.
-         - Syllabus Details -> Goal: Organize -> Viz: Interactive Cards (HTML/CSS/JS) -> Interaction: Hover states and segmented layout -> Justification: Breaks dense text into digestible, thematic chunks.
-         - Question Bank -> Goal: Engage/Test -> Viz: Accordion toggles (HTML/JS) -> Interaction: Click to reveal -> Justification: Encourages active recall rather than passive reading. 
-         - Formulas/Math -> Goal: Inform -> Viz: Semantic HTML with styling (sup/sub/Unicode) -> Interaction: None -> Justification: Ensures clean rendering without relying on external SVG renderers. -->
+    <!-- Chosen Palette: Warm Neutrals & Deep Indigo (bg-slate-50, text-slate-800, accent indigo-600) -->
+    <!-- Application Structure Plan: The SPA uses a dashboard layout with a persistent side navigation menu (top on mobile) and four primary functional views: 1. Syllabus Overview (visual distribution of topics + detailed accordion), 2. Study Plan (interactive day-by-day timeline), 3. Reference Map (searchable/filterable textbook index), and 4. Exam Strategy (visual probability breakdown and question formats). This structure transforms a static linear document into a task-oriented tool, allowing students to study logically, track progress, and find references instantly. -->
+    <!-- Visualization & Content Choices: 1. Syllabus Breakdown -> Goal: Inform -> Doughnut Chart (Chart.js) -> Hover reveals topic counts -> Shows weight of main categories. 2. Reference Map -> Goal: Organize -> Interactive Table -> Real-time text filtering -> Allows quick lookup of specific concepts. 3. Exam Probability -> Goal: Compare -> Bar Chart (Chart.js) -> Visualizes priority levels to guide study focus. 4. Study Plan -> Goal: Organize/Change -> Interactive Timeline -> Clickable days revealing tasks. Confirming NO SVG or Mermaid JS used. -->
     <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
 
-    <!-- Navigation -->
-    <nav class="bg-white border-b border-stone-200 sticky top-0 z-50 shadow-sm">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16">
-                <div class="flex items-center">
-                    <span class="text-xl font-bold text-academic-dark">Math 2 Mastery</span>
-                </div>
-                <div class="hidden md:flex space-x-8 items-center">
-                    <a href="#dashboard" class="text-stone-600 hover:text-academic transition-colors">Study Volume</a>
-                    <a href="#syllabus" class="text-stone-600 hover:text-academic transition-colors">Core Syllabus</a>
-                    <a href="#textbook" class="text-stone-600 hover:text-academic transition-colors">Textbook Map</a>
-                    <a href="#exam-prep" class="text-stone-600 hover:text-academic transition-colors">Exam Prep</a>
-                </div>
-            </div>
+    <style>
+        body { font-family: system-ui, -apple-system, sans-serif; background-color: #f8fafc; color: #1e293b; }
+        .chart-container { position: relative; width: 100%; max-width: 600px; margin-left: auto; margin-right: auto; height: 300px; max-height: 400px; }
+        @media (min-width: 768px) { .chart-container { height: 350px; } }
+        .tab-content { display: none; animation: fadeIn 0.3s ease-in-out; }
+        .tab-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .nav-btn.active { background-color: #4f46e5; color: white; }
+        .nav-btn { transition: all 0.2s; }
+        .accordion-content { display: none; }
+        .accordion-content.open { display: block; }
+    </style>
+</head>
+<body class="flex flex-col md:flex-row min-h-screen">
+
+    <nav class="w-full md:w-64 bg-white shadow-lg z-10 flex flex-col">
+        <div class="p-6 border-b border-slate-100">
+            <h1 class="text-2xl font-bold text-indigo-700">Math 2 Prep</h1>
+            <p class="text-xs text-slate-500 mt-1">Differential Equations</p>
+        </div>
+        <div class="flex flex-row md:flex-col p-4 gap-2 overflow-x-auto">
+            <button onclick="switchTab('syllabus')" id="btn-syllabus" class="nav-btn active flex-shrink-0 text-left px-4 py-3 rounded-lg font-medium text-slate-600 hover:bg-indigo-50 hover:text-indigo-700">
+                &#128214; Syllabus Overview
+            </button>
+            <button onclick="switchTab('plan')" id="btn-plan" class="nav-btn flex-shrink-0 text-left px-4 py-3 rounded-lg font-medium text-slate-600 hover:bg-indigo-50 hover:text-indigo-700">
+                &#128197; Study Plan
+            </button>
+            <button onclick="switchTab('reference')" id="btn-reference" class="nav-btn flex-shrink-0 text-left px-4 py-3 rounded-lg font-medium text-slate-600 hover:bg-indigo-50 hover:text-indigo-700">
+                &#128269; Textbook Map
+            </button>
+            <button onclick="switchTab('strategy')" id="btn-strategy" class="nav-btn flex-shrink-0 text-left px-4 py-3 rounded-lg font-medium text-slate-600 hover:bg-indigo-50 hover:text-indigo-700">
+                &#127919; Exam Strategy
+            </button>
         </div>
     </nav>
 
-    <!-- Main Content -->
-    <main class="flex-grow">
+    <main class="flex-1 p-6 md:p-10 overflow-y-auto">
         
-        <!-- Hero Section -->
-        <header class="bg-stone-900 text-stone-50 py-16">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-                <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight mb-4">Mid Term Suggestion: Ordinary Differential Equations</h1>
-                <p class="text-lg md:text-xl text-stone-300 max-w-3xl mx-auto mb-8">
-                    A comprehensive, interactive preparation guide based on 2023–2025 past paper analysis. Target: Southern University Bangladesh Midterm Spring 2026.
+        <section id="syllabus" class="tab-content active max-w-5xl mx-auto">
+            <header class="mb-8">
+                <h2 class="text-3xl font-bold text-slate-800 mb-2">Syllabus Breakdown</h2>
+                <p class="text-slate-600 leading-relaxed">
+                    This section provides a structural overview of the Math 2 midterm syllabus. The interactive chart visualizes the distribution of subtopics across the three main mathematical categories, giving you a sense of volume. Below the chart, you can explore the specific definitions and rules required for each section by expanding the thematic blocks.
                 </p>
-                <div class="inline-flex items-center justify-center px-4 py-2 bg-academic text-white rounded-full text-sm font-semibold tracking-wide uppercase shadow-lg shadow-academic/30">
-                    Focus: Mechanics of solving ODEs
-                </div>
-            </div>
-        </header>
+            </header>
 
-        <!-- Section 1: Dashboard / Study Volume -->
-        <section id="dashboard" class="py-16 bg-white">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="mb-10 text-center">
-                    <h2 class="text-3xl font-bold text-stone-800 mb-4">Study Volume Analysis</h2>
-                    <p class="text-stone-600 max-w-2xl mx-auto">
-                        This section visualizes the weight of each topic based on textbook page allocations. It helps prioritize your study sessions by identifying the most dense topics, such as Constant Coefficients.
-                    </p>
-                </div>
-                
-                <!-- Chart Container (Strictly styled per requirements) -->
-                <div class="bg-stone-50 p-6 rounded-2xl border border-stone-200 shadow-inner">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                    <h3 class="text-xl font-semibold mb-4 text-center">Topic Distribution</h3>
                     <div class="chart-container">
-                        <canvas id="studyVolumeChart"></canvas>
+                        <canvas id="syllabusChart"></canvas>
                     </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Section 2: Interactive Syllabus -->
-        <section id="syllabus" class="py-16 bg-stone-100 border-t border-stone-200">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="mb-12 md:flex md:items-center md:justify-between">
-                    <div class="md:w-2/3">
-                        <h2 class="text-3xl font-bold text-stone-800 mb-4">Practical Syllabus & Core Competencies</h2>
-                        <p class="text-stone-600">
-                            Explore the required proficiency areas. Click on the categories below to understand the core methods and required knowledge for the exam.
-                        </p>
-                    </div>
+                    <p class="text-sm text-center text-slate-500 mt-4">Hover over sections to see the number of subtopics.</p>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- Card 1 -->
-                    <div class="interactive-card bg-white rounded-xl p-6 border border-stone-200 shadow-sm flex flex-col h-full">
-                        <div class="flex items-center mb-4">
-                            <div class="w-10 h-10 rounded-full bg-academic-light text-academic flex items-center justify-center font-bold text-xl mr-4">A</div>
-                            <h3 class="text-xl font-bold text-stone-800">Foundations & Formation</h3>
+                <div class="space-y-4">
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                        <button onclick="toggleAccordion('acc-1')" class="w-full text-left px-6 py-4 bg-slate-50 hover:bg-slate-100 font-semibold text-indigo-900 flex justify-between items-center">
+                            Introduction to Differential Equations
+                            <span class="text-indigo-400">&#9662;</span>
+                        </button>
+                        <div id="acc-1" class="accordion-content px-6 py-4 border-t border-slate-100 space-y-3">
+                            <p><strong>Definitions:</strong> Ordinary (ODE) vs. Partial (PDE) Differential Equations.</p>
+                            <p><strong>Properties:</strong> Identifying the Order and Degree of an equation.</p>
+                            <p><strong>Formation:</strong> Creating DEs by eliminating arbitrary constants from a family of curves.</p>
                         </div>
-                        <ul class="space-y-3 text-stone-600 flex-grow">
-                            <li class="pl-4 border-l-2 border-academic">
-                                <strong class="text-stone-800 block">Classification:</strong> 
-                                Differentiate between ODE and PDE.
-                            </li>
-                            <li class="pl-4 border-l-2 border-academic">
-                                <strong class="text-stone-800 block">Attributes:</strong> 
-                                Identify the <span class="font-semibold text-academic">Order</span> (highest derivative) and <span class="font-semibold text-academic">Degree</span> (power of the highest derivative).
-                            </li>
-                            <li class="pl-4 border-l-2 border-academic">
-                                <strong class="text-stone-800 block">Formation (Elimination):</strong> 
-                                Practice removing arbitrary constants from families of curves (Circles, Parabolas, Trigonometric functions) to derive their governing DE.
-                            </li>
-                        </ul>
                     </div>
 
-                    <!-- Card 2 -->
-                    <div class="interactive-card bg-white rounded-xl p-6 border border-stone-200 shadow-sm flex flex-col h-full">
-                        <div class="flex items-center mb-4">
-                            <div class="w-10 h-10 rounded-full bg-academic-light text-academic flex items-center justify-center font-bold text-xl mr-4">B</div>
-                            <h3 class="text-xl font-bold text-stone-800">First-Order, First-Degree Methods</h3>
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                        <button onclick="toggleAccordion('acc-2')" class="w-full text-left px-6 py-4 bg-slate-50 hover:bg-slate-100 font-semibold text-indigo-900 flex justify-between items-center">
+                            First-Order, First-Degree DEs
+                            <span class="text-indigo-400">&#9662;</span>
+                        </button>
+                        <div id="acc-2" class="accordion-content px-6 py-4 border-t border-slate-100 space-y-3">
+                            <p><strong>Variable Separable (VS):</strong> Isolating variables to solve basic equations.</p>
+                            <p><strong>Reducible to VS:</strong> Using the substitution method specifically for $y' = f(ax+by+c)$.</p>
+                            <p><strong>Homogeneous DEs:</strong> Solving equations where functions $M$ and $N$ share the same degree.</p>
+                            <p><strong>Linear DEs:</strong> Utilizing the Integrating Factor (I.F.) $e^{\int P dx}$ to solve $y' + Py = Q$.</p>
+                            <p><strong>Exact DEs:</strong> Checking condition ($\frac{\partial M}{\partial y} = \frac{\partial N}{\partial x}$) and solving rules.</p>
                         </div>
-                        <ul class="space-y-3 text-stone-600 flex-grow">
-                            <li class="pl-4 border-l-2 border-academic">
-                                <strong class="text-stone-800 block">Variable Separable:</strong> 
-                                Direct separation and reducible forms using substitution (e.g., <span class="math-text">v = ax + by + c</span>).
-                            </li>
-                            <li class="pl-4 border-l-2 border-academic">
-                                <strong class="text-stone-800 block">Homogeneous Equations:</strong> 
-                                Utilizing the <span class="math-text">y = vx</span> substitution.
-                            </li>
-                            <li class="pl-4 border-l-2 border-academic">
-                                <strong class="text-stone-800 block">Linear Equations (I.F.):</strong> 
-                                Solving via the Integrating Factor method: <span class="math-text">I.F. = e<sup>&int; P dx</sup></span>.
-                            </li>
-                            <li class="pl-4 border-l-2 border-alert">
-                                <strong class="text-stone-800 block">Exact Equations (High Priority):</strong> 
-                                Applying the test for exactness: <span class="math-text">&part;M/&part;y = &part;N/&part;x</span>.
-                            </li>
-                        </ul>
                     </div>
 
-                    <!-- Card 3 (Full Width) -->
-                    <div class="interactive-card bg-white rounded-xl p-6 border border-stone-200 shadow-sm md:col-span-2 flex flex-col sm:flex-row items-start sm:items-center">
-                        <div class="flex items-center mb-4 sm:mb-0 sm:mr-8 sm:w-1/3">
-                            <div class="w-10 h-10 rounded-full bg-academic-light text-academic flex items-center justify-center font-bold text-xl mr-4 shrink-0">C</div>
-                            <h3 class="text-xl font-bold text-stone-800">Higher-Order Linear DE</h3>
-                        </div>
-                        <div class="sm:w-2/3 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div class="bg-stone-50 p-4 rounded-lg border border-stone-100">
-                                <strong class="text-stone-800 block mb-1">Constant Coefficients:</strong>
-                                <p class="text-sm text-stone-600">Using the Auxiliary Equation (A.E.) to find the Complementary Function (C.F.) and solving for the Particular Integral (P.I.) for RHS functions like <span class="math-text">e<sup>ax</sup></span>, <span class="math-text">cos(ax)</span>, or polynomials.</p>
-                            </div>
-                            <div class="bg-stone-50 p-4 rounded-lg border border-stone-100">
-                                <strong class="text-stone-800 block mb-1">Euler-Cauchy (Homogeneous):</strong>
-                                <p class="text-sm text-stone-600">Handling equations of form <span class="math-text">x<sup>n</sup>(d<sup>n</sup>y/dx<sup>n</sup>)</span> by substituting <span class="math-text">x = e<sup>z</sup></span> to transform into constant coefficients.</p>
-                            </div>
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                        <button onclick="toggleAccordion('acc-3')" class="w-full text-left px-6 py-4 bg-slate-50 hover:bg-slate-100 font-semibold text-indigo-900 flex justify-between items-center">
+                            Higher-Order Linear DEs
+                            <span class="text-indigo-400">&#9662;</span>
+                        </button>
+                        <div id="acc-3" class="accordion-content px-6 py-4 border-t border-slate-100 space-y-3">
+                            <p><strong>Constant Coefficients:</strong> Using operator $D$, Auxiliary Equations (A.E.), Complementary Functions (C.F.), and Particular Integrals (P.I.).</p>
+                            <p><strong>Homogeneous Linear:</strong> Solving Euler-Cauchy equations in format $x^2 \frac{d^2y}{dx^2} + P_1 x \frac{dy}{dx} + P_2 y = X$.</p>
                         </div>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- Section 3: Textbook Mapping (Interactive Table) -->
-        <section id="textbook" class="py-16 bg-white border-t border-stone-200">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="mb-8 flex flex-col md:flex-row md:items-end md:justify-between gap-4">
-                    <div class="max-w-2xl">
-                        <h2 class="text-3xl font-bold text-stone-800 mb-2">Textbook Reference Mapping</h2>
-                        <p class="text-stone-600">
-                            Use this interactive table to locate topics in the reference textbook. Filter by significance to plan your targeted study sessions.
-                        </p>
-                    </div>
-                    <div class="w-full md:w-64">
-                        <label for="significanceFilter" class="block text-sm font-medium text-stone-700 mb-1">Filter by Significance</label>
-                        <select id="significanceFilter" class="block w-full rounded-md border-stone-300 shadow-sm focus:border-academic focus:ring-academic sm:text-sm p-2 border bg-stone-50">
-                            <option value="all">All Topics</option>
-                            <option value="Quick Marks">Quick Marks</option>
-                            <option value="Midterm Favorite">Midterm Favorite</option>
-                            <option value="Fundamental">Fundamental / Core Method</option>
-                            <option value="High Probability">High Probability / Guaranteed</option>
-                            <option value="Advanced Solving">Advanced Solving</option>
-                            <option value="Final Exam Bulk">Final Exam Bulk</option>
-                        </select>
-                    </div>
+        <section id="plan" class="tab-content max-w-5xl mx-auto">
+            <header class="mb-8">
+                <h2 class="text-3xl font-bold text-slate-800 mb-2">Execution Plan</h2>
+                <p class="text-slate-600 leading-relaxed">
+                    This interactive timeline translates the syllabus into a structured 7-day, 4-phase study plan. Click on each phase to review your daily objectives. This organized approach ensures you build foundational knowledge before moving on to complex solving techniques.
+                </p>
+            </header>
+
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 md:p-8">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+                    <button onclick="showPhase(1)" class="phase-btn p-4 rounded border-2 border-indigo-100 bg-indigo-50 hover:bg-indigo-100 font-bold text-indigo-800 transition">Phase 1: Day 1</button>
+                    <button onclick="showPhase(2)" class="phase-btn p-4 rounded border-2 border-slate-100 bg-slate-50 hover:bg-indigo-50 font-bold text-slate-600 transition">Phase 2: Days 2-4</button>
+                    <button onclick="showPhase(3)" class="phase-btn p-4 rounded border-2 border-slate-100 bg-slate-50 hover:bg-indigo-50 font-bold text-slate-600 transition">Phase 3: Day 5</button>
+                    <button onclick="showPhase(4)" class="phase-btn p-4 rounded border-2 border-slate-100 bg-slate-50 hover:bg-indigo-50 font-bold text-slate-600 transition">Phase 4: Days 6-7</button>
                 </div>
 
-                <div class="overflow-x-auto shadow ring-1 ring-black ring-opacity-5 rounded-lg">
-                    <table class="min-w-full divide-y divide-stone-300">
-                        <thead class="bg-stone-50">
-                            <tr>
-                                <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-stone-900 sm:pl-6">Topic</th>
-                                <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-stone-900">Page Range</th>
-                                <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-stone-900">Significance</th>
+                <div id="phase-content" class="min-h-[200px] p-6 bg-slate-50 rounded-lg border border-slate-200">
+                    <h3 class="text-2xl font-bold text-indigo-900 mb-4">Phase 1: Foundations</h3>
+                    <ul class="list-disc pl-6 space-y-2 text-slate-700 text-lg">
+                        <li>Learn ODE/PDE definitions, Order, and Degree.</li>
+                        <li>Practice forming DEs via differentiation and constant elimination.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section id="reference" class="tab-content max-w-5xl mx-auto">
+            <header class="mb-8">
+                <h2 class="text-3xl font-bold text-slate-800 mb-2">Textbook Reference Map</h2>
+                <p class="text-slate-600 leading-relaxed">
+                    Use this searchable directory to instantly locate primary reading material for any given topic. Type keywords into the search bar to filter the data table below. This tool eliminates the friction of navigating dense textbook indexes.
+                </p>
+            </header>
+
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                <div class="mb-6 relative">
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">&#128269;</span>
+                    <input type="text" id="searchInput" onkeyup="filterTable()" placeholder="Search topics (e.g., 'Linear', 'Exact')..." class="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse" id="referenceTable">
+                        <thead>
+                            <tr class="bg-slate-50 text-slate-700 border-b-2 border-slate-200">
+                                <th class="py-3 px-4 font-semibold">Topic</th>
+                                <th class="py-3 px-4 font-semibold w-32">Primary Pages</th>
                             </tr>
                         </thead>
-                        <tbody id="tableBody" class="divide-y divide-stone-200 bg-white">
-                            <!-- Populated by JS -->
+                        <tbody class="text-slate-600 divide-y divide-slate-100">
+                            <tr class="hover:bg-slate-50 transition"><td class="py-3 px-4">Definitions (ODE, PDE, Order, Degree)</td><td class="py-3 px-4 font-mono text-indigo-600">1–2</td></tr>
+                            <tr class="hover:bg-slate-50 transition"><td class="py-3 px-4">Formation of Differential Equations</td><td class="py-3 px-4 font-mono text-indigo-600">2–5</td></tr>
+                            <tr class="hover:bg-slate-50 transition"><td class="py-3 px-4">Variable Separable Form</td><td class="py-3 px-4 font-mono text-indigo-600">5–7</td></tr>
+                            <tr class="hover:bg-slate-50 transition"><td class="py-3 px-4">Reducible to VS ($ax+by+c$ substitution)</td><td class="py-3 px-4 font-mono text-indigo-600">7–9</td></tr>
+                            <tr class="hover:bg-slate-50 transition"><td class="py-3 px-4">Homogeneous Differential Equations</td><td class="py-3 px-4 font-mono text-indigo-600">10–12</td></tr>
+                            <tr class="hover:bg-slate-50 transition"><td class="py-3 px-4">Linear Differential Equations</td><td class="py-3 px-4 font-mono text-indigo-600">18–21</td></tr>
+                            <tr class="hover:bg-slate-50 transition"><td class="py-3 px-4">Bernoulli’s Equation (Reducible to Linear)</td><td class="py-3 px-4 font-mono text-indigo-600">22–24</td></tr>
+                            <tr class="hover:bg-slate-50 transition"><td class="py-3 px-4">Exact Differential Equations</td><td class="py-3 px-4 font-mono text-indigo-600">36–38</td></tr>
+                            <tr class="hover:bg-slate-50 transition"><td class="py-3 px-4">Integrating Factors (Rules for Non-Exact)</td><td class="py-3 px-4 font-mono text-indigo-600">44–47</td></tr>
+                            <tr class="hover:bg-slate-50 transition"><td class="py-3 px-4">Linear DE with Constant Coefficients</td><td class="py-3 px-4 font-mono text-indigo-600">60–64</td></tr>
+                            <tr class="hover:bg-slate-50 transition"><td class="py-3 px-4">Particular Integrals (Short Methods)</td><td class="py-3 px-4 font-mono text-indigo-600">67–75</td></tr>
+                            <tr class="hover:bg-slate-50 transition"><td class="py-3 px-4">Homogeneous Linear Equations ($x^n$ type)</td><td class="py-3 px-4 font-mono text-indigo-600">95–97</td></tr>
                         </tbody>
                     </table>
                 </div>
             </div>
         </section>
 
-        <!-- Section 4: Question Bank & Strategy -->
-        <section id="exam-prep" class="py-16 bg-stone-900 text-stone-50">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="text-center mb-12">
-                    <h2 class="text-3xl font-bold text-white mb-4">Exam Prep: Question Bank & Strategy</h2>
-                    <p class="text-stone-400 max-w-2xl mx-auto">
-                        High-probability concepts and tactical advice derived directly from exam analysis. Interact with the questions to test your knowledge before viewing the focus areas.
-                    </p>
+        <section id="strategy" class="tab-content max-w-5xl mx-auto">
+            <header class="mb-8">
+                <h2 class="text-3xl font-bold text-slate-800 mb-2">Exam Strategy & Probabilities</h2>
+                <p class="text-slate-600 leading-relaxed">
+                    Maximize your score by focusing on high-yield topics. This view compares the probability of different conceptual areas appearing on the midterm. The bar chart visualizes the priority targeting, and the interactive cards below detail the exact mathematical formats you should prepare to solve.
+                </p>
+            </header>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                    <h3 class="text-xl font-semibold mb-4 text-center">Topic Testing Probability</h3>
+                    <div class="chart-container">
+                        <canvas id="probabilityChart"></canvas>
+                    </div>
                 </div>
 
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
-                    <!-- Left Col: Question Bank (Accordions) -->
-                    <div>
-                        <h3 class="text-2xl font-semibold text-academic-light mb-6 border-b border-stone-700 pb-2">High-Probability Questions</h3>
-                        
-                        <div class="space-y-4">
-                            <!-- Theory Config -->
-                            <div class="bg-stone-800 rounded-lg border border-stone-700 overflow-hidden">
-                                <button class="accordion-btn w-full px-6 py-4 text-left flex justify-between items-center focus:outline-none hover:bg-stone-700 transition-colors">
-                                    <span class="font-medium">Theory & Definitions</span>
-                                    <span class="text-2xl font-mono leading-none transition-transform duration-300 select-none">+</span>
-                                </button>
-                                <div class="accordion-content bg-stone-900 px-6 py-0 text-stone-300 text-sm">
-                                    <div class="py-4 space-y-3">
-                                        <p>1. <strong>Definitions:</strong> Distinguish between ODE and PDE with examples.</p>
-                                        <p>2. <strong>Condition for Exactness:</strong> State and prove <span class="math-text bg-stone-800 text-academic-light border border-stone-700">&part;M/&part;y = &part;N/&part;x</span>.</p>
-                                        <p>3. <strong>The Auxiliary Equation:</strong> Define its role in solving higher-order linear DEs.</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Recurring Problem Config -->
-                            <div class="bg-stone-800 rounded-lg border border-stone-700 overflow-hidden">
-                                <button class="accordion-btn w-full px-6 py-4 text-left flex justify-between items-center focus:outline-none hover:bg-stone-700 transition-colors">
-                                    <span class="font-medium">Recurring Problem Types</span>
-                                    <span class="text-2xl font-mono leading-none transition-transform duration-300 select-none">+</span>
-                                </button>
-                                <div class="accordion-content bg-stone-900 px-6 py-0 text-stone-300 text-sm">
-                                    <div class="py-4 space-y-4">
-                                        <div>
-                                            <span class="block text-academic-light mb-1">The "Linear Substitution" Problem:</span>
-                                            Solve <span class="math-text bg-stone-800 text-academic-light border border-stone-700">dy/dx = (4x + y + 1)<sup>2</sup></span>
-                                        </div>
-                                        <div>
-                                            <span class="block text-academic-light mb-1">The "Non-Homogeneous Reducible" Problem:</span>
-                                            Solve <span class="math-text bg-stone-800 text-academic-light border border-stone-700">(2x - 2y + 5) dy/dx = x - y + 3</span>
-                                        </div>
-                                        <div>
-                                            <span class="block text-academic-light mb-1">Order/Degree Tasks:</span>
-                                            Identify values for: <span class="math-text bg-stone-800 text-academic-light border border-stone-700">(d<sup>2</sup>y/dx<sup>2</sup>)<sup>3</sup> + (dy/dx)<sup>4</sup> + y = 0</span>
-                                        </div>
-                                        <div>
-                                            <span class="block text-academic-light mb-1">Formation Task:</span>
-                                            Eliminate c from <span class="math-text bg-stone-800 text-academic-light border border-stone-700">x<sup>3</sup> = c(y+c)<sup>2</sup></span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                <div class="flex flex-col gap-4">
+                    <div class="bg-red-50 border border-red-200 p-5 rounded-xl">
+                        <h4 class="font-bold text-red-800 mb-2">&#128293; High Probability (Expect These)</h4>
+                        <ul class="list-disc pl-5 text-red-900 text-sm space-y-2">
+                            <li><strong>Formation of DEs:</strong> Eliminating $c$ from curves (e.g., $x^3 = c(y+c)^2$).</li>
+                            <li><strong>Linear DEs:</strong> E.g., $x(x-1)y' - y = x^2(x-1)^2$.</li>
+                            <li><strong>Exact DEs:</strong> Testing exactness and solving (e.g., $(x^2+y^2+1)dx - 2xydy = 0$).</li>
+                            <li><strong>Auxiliary Equations:</strong> Constant coefficient problems like $(D^3 - 3D^2 + 4D - 2)y = e^x$.</li>
+                        </ul>
                     </div>
 
-                    <!-- Right Col: Exam Strategy Tips -->
-                    <div>
-                        <h3 class="text-2xl font-semibold text-alert-light mb-6 border-b border-stone-700 pb-2">Exam Strategy Tips</h3>
-                        
-                        <div class="space-y-6">
-                            <!-- Tip 1 -->
-                            <div class="relative pl-10">
-                                <div class="absolute left-0 top-0.5 w-6 h-6 rounded-full bg-alert text-stone-900 flex items-center justify-center font-bold text-sm">1</div>
-                                <h4 class="text-lg font-medium text-white mb-2">Exactness First</h4>
-                                <p class="text-stone-400 text-sm">
-                                    In many exams, a problem that looks difficult is often "Exact." Always check <span class="math-text bg-stone-800 text-alert-light border border-stone-700">&part;M/&part;y = &part;N/&part;x</span> first if the equation is in the form <span class="math-text bg-stone-800 text-stone-300 border border-stone-700">Mdx + Ndy = 0</span>.
-                                </p>
-                            </div>
-                            
-                            <!-- Tip 2 -->
-                            <div class="relative pl-10">
-                                <div class="absolute left-0 top-0.5 w-6 h-6 rounded-full bg-alert text-stone-900 flex items-center justify-center font-bold text-sm">2</div>
-                                <h4 class="text-lg font-medium text-white mb-2">C.F. Cases Memorization</h4>
-                                <p class="text-stone-400 text-sm">
-                                    Memorize the three root cases (Real/Distinct, Real/Equal, Complex/Imaginary) for Complementary Functions perfectly. Mixing up real and imaginary root formats is the most common cause of lost marks.
-                                </p>
-                            </div>
-
-                            <!-- Tip 3 -->
-                            <div class="relative pl-10">
-                                <div class="absolute left-0 top-0.5 w-6 h-6 rounded-full bg-alert text-stone-900 flex items-center justify-center font-bold text-sm">3</div>
-                                <h4 class="text-lg font-medium text-white mb-2">Substitution Logic (Euler-Cauchy)</h4>
-                                <p class="text-stone-400 text-sm">
-                                    Remember that the operator <span class="math-text bg-stone-800 text-stone-300 border border-stone-700">x<sup>2</sup>D<sup>2</sup></span> becomes <span class="math-text bg-stone-800 text-stone-300 border border-stone-700">D(D-1)</span> <em>only after</em> the <span class="math-text bg-stone-800 text-stone-300 border border-stone-700">x = e<sup>z</sup></span> substitution has been applied. Do not apply it directly to x.
-                                </p>
-                            </div>
-                        </div>
+                    <div class="bg-orange-50 border border-orange-200 p-5 rounded-xl">
+                        <h4 class="font-bold text-orange-800 mb-2">&#9889; Medium Probability</h4>
+                        <ul class="list-disc pl-5 text-orange-900 text-sm space-y-2">
+                            <li><strong>Homogeneous Linear:</strong> ($x^n$ type) E.g., $x^2 \frac{d^2y}{dx^2} - 2x \frac{dy}{dx} - 4y = x^4$.</li>
+                            <li><strong>Particular Integrals (P.I.):</strong> Finding P.I. for trigonometric functions like $\sin ax$.</li>
+                        </ul>
                     </div>
                 </div>
             </div>
+
+            <h3 class="text-2xl font-bold text-slate-800 mb-4 mt-8">Expected Question Formats</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                    <h4 class="font-bold text-indigo-900 mb-3 border-b pb-2">Definitions & Short Qs</h4>
+                    <ul class="text-sm text-slate-700 space-y-3">
+                        <li>&#8226; Define ODE vs. PDE with examples.</li>
+                        <li>&#8226; Define homogeneous linear DEs with examples.</li>
+                        <li>&#8226; State the order and degree of a given radical or derivative equation.</li>
+                    </ul>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                    <h4 class="font-bold text-indigo-900 mb-3 border-b pb-2">Standard Numerical Formats</h4>
+                    <ul class="text-sm text-slate-700 space-y-3">
+                        <li>&#8226; Reducible to VS: Solve $\frac{dy}{dx} = (4x + y + 1)^2$.</li>
+                        <li>&#8226; Reducible to VS: Solve $(2x - 2y + 5) \frac{dy}{dx} = x - y + 3$.</li>
+                        <li>&#8226; Homogeneous: Solve $(x^2 + y^2)dx + 2xydy = 0$.</li>
+                    </ul>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                    <h4 class="font-bold text-indigo-900 mb-3 border-b pb-2">Derivations & Rules</h4>
+                    <ul class="text-sm text-slate-700 space-y-3">
+                        <li>&#8226; Describe the general rules to solve an exact differential equation.</li>
+                        <li>&#8226; Explain how to solve a first-order homogeneous DE.</li>
+                        <li>&#8226; Distinguish between C.F. and P.I.</li>
+                    </ul>
+                </div>
+            </div>
+
         </section>
 
     </main>
 
-    <!-- Footer -->
-    <footer class="bg-stone-950 text-stone-500 py-8 text-center text-sm border-t border-stone-800">
-        <p>Created based on the Spring 2026 Midterm Study Guide • Southern University Bangladesh</p>
-    </footer>
-
-    <!-- Interactive Logic -->
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active', 'bg-indigo-50'));
             
-            // --- DATA STORE ---
-            const textbookData = [
-                { topic: "Definitions, Order, & Degree", pages: "1 – 2", calcPages: 2, sig: "Quick Marks", sigClass: "bg-green-100 text-green-800" },
-                { topic: "Formation of DE", pages: "2 – 7", calcPages: 6, sig: "Midterm Favorite", sigClass: "bg-purple-100 text-purple-800" },
-                { topic: "Variable Separable & Reducible", pages: "8 – 10", calcPages: 3, sig: "Fundamental", sigClass: "bg-stone-100 text-stone-800" },
-                { topic: "Homogeneous (y = vx)", pages: "10 – 17", calcPages: 8, sig: "Core Method", sigClass: "bg-stone-100 text-stone-800" },
-                { topic: "Linear DE (I.F.)", pages: "18 – 22", calcPages: 5, sig: "High Probability", sigClass: "bg-alert-light text-alert" },
-                { topic: "Bernoulli’s Equation", pages: "22 – 32", calcPages: 11, sig: "Advanced Solving", sigClass: "bg-stone-100 text-stone-800" },
-                { topic: "Exact Differential Equations", pages: "36 – 40", calcPages: 5, sig: "Guaranteed Question", sigClass: "bg-alert-light text-alert" },
-                { topic: "Constant Coefficients (C.F./P.I.)", pages: "60 – 80", calcPages: 21, sig: "Final Exam Bulk", sigClass: "bg-academic-light text-academic-dark" },
-                { topic: "Euler-Cauchy Equations", pages: "95 – 103", calcPages: 9, sig: "Transformation Logic", sigClass: "bg-stone-100 text-stone-800" }
-            ];
+            document.getElementById(tabId).classList.add('active');
+            const activeBtn = document.getElementById('btn-' + tabId);
+            activeBtn.classList.add('active');
+            
+            if(tabId === 'syllabus' && !window.syllabusChartRendered) {
+                renderSyllabusChart();
+                window.syllabusChartRendered = true;
+            }
+            if(tabId === 'strategy' && !window.probChartRendered) {
+                renderProbabilityChart();
+                window.probChartRendered = true;
+            }
+        }
 
-            // --- CHART.JS IMPLEMENTATION ---
-            const ctx = document.getElementById('studyVolumeChart').getContext('2d');
-            
-            // Prepare data for chart
-            const labels = textbookData.map(d => d.topic);
-            const dataPoints = textbookData.map(d => d.calcPages);
-            
-            // Assign colors based on significance for chart
-            const backgroundColors = textbookData.map(d => {
-                if(d.sig.includes("Probability") || d.sig.includes("Guaranteed")) return '#d97706'; // Alert
-                if(d.sig.includes("Bulk")) return '#0284c7'; // Academic
-                return '#d6d3d1'; // Stone-300 default
+        function toggleAccordion(id) {
+            const el = document.getElementById(id);
+            el.classList.toggle('open');
+        }
+
+        const phaseData = {
+            1: { title: "Phase 1: Foundations", content: "<li>Learn ODE/PDE definitions, Order, and Degree.</li><li>Practice forming DEs via differentiation and constant elimination.</li>" },
+            2: { title: "Phase 2: First-Order Techniques", content: "<li><strong>Day 2:</strong> Variable Separable form and substitution for $y' = f(ax+by+c)$.</li><li><strong>Day 3:</strong> Homogeneous equations (substituting $y=vx$).</li><li><strong>Day 4:</strong> Linear DEs and calculating the Integrating Factor (I.F.).</li>" },
+            3: { title: "Phase 3: Exactness & Integrating Factors", content: "<li>Memorize the exactness condition and the 3-step solving rule.</li><li>Learn the rules for finding an I.F. when an equation fails the exactness test.</li>" },
+            4: { title: "Phase 4: Higher-Order Equations", content: "<li><strong>Day 6:</strong> Constant coefficient DEs (Auxiliary Equations and C.F.).</li><li><strong>Day 7:</strong> Particular Integral (P.I.) shortcuts (e.g., $e^{ax}$, $\\sin ax$) and homogeneous linear ($x^n$) equations.</li>" }
+        };
+
+        function showPhase(num) {
+            document.querySelectorAll('.phase-btn').forEach((btn, idx) => {
+                if(idx === num - 1) {
+                    btn.classList.add('border-indigo-100', 'bg-indigo-50', 'text-indigo-800');
+                    btn.classList.remove('border-slate-100', 'bg-slate-50', 'text-slate-600');
+                } else {
+                    btn.classList.remove('border-indigo-100', 'bg-indigo-50', 'text-indigo-800');
+                    btn.classList.add('border-slate-100', 'bg-slate-50', 'text-slate-600');
+                }
             });
+            const container = document.getElementById('phase-content');
+            container.innerHTML = `<h3 class="text-2xl font-bold text-indigo-900 mb-4">${phaseData[num].title}</h3><ul class="list-disc pl-6 space-y-2 text-slate-700 text-lg">${phaseData[num].content}</ul>`;
+            if (window.renderMathInElement) {
+                window.renderMathInElement(container);
+            }
+        }
 
+        function filterTable() {
+            let input = document.getElementById("searchInput");
+            let filter = input.value.toUpperCase();
+            let table = document.getElementById("referenceTable");
+            let tr = table.getElementsByTagName("tr");
+            for (let i = 1; i < tr.length; i++) {
+                let td = tr[i].getElementsByTagName("td")[0];
+                if (td) {
+                    let txtValue = td.textContent || td.innerText;
+                    if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                        tr[i].style.display = "";
+                    } else {
+                        tr[i].style.display = "none";
+                    }
+                }       
+            }
+        }
+
+        function renderSyllabusChart() {
+            const ctx = document.getElementById('syllabusChart').getContext('2d');
             new Chart(ctx, {
-                type: 'bar',
+                type: 'doughnut',
                 data: {
-                    labels: labels,
+                    labels: ['Intro to DEs', 'First-Order DEs', 'Higher-Order DEs'],
                     datasets: [{
-                        label: 'Estimated Pages to Study',
-                        data: dataPoints,
-                        backgroundColor: backgroundColors,
-                        borderRadius: 4,
-                        borderWidth: 0
+                        data: [3, 5, 2],
+                        backgroundColor: ['#c7d2fe', '#818cf8', '#4f46e5'],
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
                     }]
                 },
                 options: {
                     responsive: true,
-                    maintainAspectRatio: false, // CRITICAL for filling parent container properly
-                    indexAxis: 'y', // Horizontal bar chart is better for long topic names
+                    maintainAspectRatio: false,
                     plugins: {
-                        legend: { display: false },
+                        legend: { position: 'bottom' },
                         tooltip: {
-                            backgroundColor: '#292524',
-                            titleFont: { family: 'Inter', size: 14 },
-                            bodyFont: { family: 'Inter', size: 13 },
-                            padding: 12,
                             callbacks: {
-                                afterLabel: function(context) {
-                                    return 'Significance: ' + textbookData[context.dataIndex].sig;
-                                }
+                                label: function(context) { return ' ' + context.label + ': ' + context.raw + ' Subtopics'; }
                             }
                         }
-                    },
+                    }
+                }
+            });
+        }
+
+        function renderProbabilityChart() {
+            const ctx = document.getElementById('probabilityChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['High Probability', 'Medium Probability', 'Critical Concepts'],
+                    datasets: [{
+                        label: 'Number of Core Topics',
+                        data: [4, 2, 2],
+                        backgroundColor: ['#ef4444', '#f97316', '#3b82f6'],
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
                     scales: {
-                        x: {
-                            beginAtZero: true,
-                            grid: { color: '#e7e5e4', drawBorder: false },
-                            ticks: { font: { family: 'Inter' } },
-                            title: { display: true, text: 'Number of Pages', font: {family: 'Inter', weight: '500'} }
-                        },
-                        y: {
-                            grid: { display: false },
-                            ticks: { 
-                                font: { family: 'Inter' },
-                                callback: function(value) {
-                                    // Label wrapping logic (approx 16-20 chars)
-                                    let label = this.getLabelForValue(value);
-                                    if(label.length > 20) {
-                                        return label.substr(0, 20) + '...';
-                                    }
-                                    return label;
-                                }
-                            }
-                        }
+                        y: { beginAtZero: true, ticks: { stepSize: 1 } }
+                    },
+                    plugins: {
+                        legend: { display: false }
                     }
                 }
             });
+        }
 
-            // --- TABLE FILTERING LOGIC ---
-            const tbody = document.getElementById('tableBody');
-            const filterSelect = document.getElementById('significanceFilter');
-
-            function renderTable(data) {
-                tbody.innerHTML = '';
-                if(data.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="3" class="px-6 py-8 text-center text-stone-500">No topics match this filter.</td></tr>`;
-                    return;
-                }
-
-                data.forEach(item => {
-                    const tr = document.createElement('tr');
-                    tr.className = "hover:bg-stone-50 transition-colors";
-                    tr.innerHTML = `
-                        <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-stone-900 sm:pl-6">${item.topic}</td>
-                        <td class="whitespace-nowrap px-3 py-4 text-sm text-stone-500 font-mono">${item.pages}</td>
-                        <td class="whitespace-nowrap px-3 py-4 text-sm">
-                            <span class="inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${item.sigClass}">
-                                ${item.sig}
-                            </span>
-                        </td>
-                    `;
-                    tbody.appendChild(tr);
-                });
-            }
-
-            // Initial render
-            renderTable(textbookData);
-
-            // Filter event listener
-            filterSelect.addEventListener('change', (e) => {
-                const term = e.target.value;
-                if (term === 'all') {
-                    renderTable(textbookData);
-                } else {
-                    const filtered = textbookData.filter(item => item.sig.includes(term.split(' ')[0])); // basic match
-                    renderTable(filtered);
-                }
-            });
-
-            // --- ACCORDION LOGIC ---
-            const accordions = document.querySelectorAll('.accordion-btn');
-            
-            accordions.forEach(btn => {
-                btn.addEventListener('click', function() {
-                    // Toggle current
-                    const content = this.nextElementSibling;
-                    const icon = this.querySelector('span:last-child');
-                    
-                    if (content.classList.contains('open')) {
-                        content.classList.remove('open');
-                        icon.textContent = '+';
-                        icon.style.transform = 'rotate(0deg)';
-                    } else {
-                        content.classList.add('open');
-                        icon.textContent = '−';
-                        icon.style.transform = 'rotate(180deg)';
-                    }
-                });
-            });
-
-            // --- SMOOTH SCROLL OFFSET ---
-            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-                anchor.addEventListener('click', function (e) {
-                    e.preventDefault();
-                    const targetId = this.getAttribute('href');
-                    const targetElement = document.querySelector(targetId);
-                    
-                    if(targetElement) {
-                        const navHeight = document.querySelector('nav').offsetHeight;
-                        const targetPosition = targetElement.getBoundingClientRect().top + window.pageYOffset - navHeight;
-                        
-                        window.scrollTo({
-                            top: targetPosition,
-                            behavior: 'smooth'
-                        });
-                    }
-                });
-            });
-
+        document.addEventListener('DOMContentLoaded', () => {
+            renderSyllabusChart();
+            window.syllabusChartRendered = true;
         });
     </script>
 </body>
